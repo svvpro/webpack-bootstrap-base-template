@@ -2,4 +2,6 @@
     height: 400px;
     width: 400px;
     background: url('../images/f1.jpg') center center;
+    border-radius: 10px;
+    display: flex;
 }

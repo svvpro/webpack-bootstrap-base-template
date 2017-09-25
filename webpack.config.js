@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -9,13 +10,34 @@ module.exports = {
         filename: "bundle.js",
         path: path.resolve(__dirname, 'dist')
     },
+    devServer: {
+        contentBase: path.join(__dirname, "dist"),
+        compress: true,
+        port: 9000,
+        stats: 'errors-only',
+        open: true
+    },
     module: {
         rules: [
             {
-                test: /\.css$/,
+                test: /\.js$/,
+                exclude: /(node_modules|bower_components)/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ['env']
+                    }
+                }
+            },
+            {
+                test: /\.(css|sass|scss)$/,
                 use: ExtractTextPlugin.extract({
-                    fallback: "style-loader",
-                    use: "css-loader"
+                    fallback: 'style-loader',
+                    use: [
+                        { loader: 'css-loader', options: { importLoaders: 1 } },
+                        'postcss-loader',
+                        'sass-loader'
+                    ]
                 })
             },
             {
@@ -33,20 +55,22 @@ module.exports = {
             {
                 test: /\.(png|jpg|gif)$/,
                 use: [
-                    {
-                        loader: 'file-loader',
-                        options: {
-                            name: '[name].[ext]',
-                            outputPath: 'images/',
-                        }
-                    }
+                    'file-loader?name=[name].[ext]&outputPath=images/',
+                    'image-webpack-loader'
                 ]
             },
             {
                 test: /\.(html)$/,
                 use: {
                     loader: 'html-loader',
-                    options: {}
+                    options: {
+                        removeComments: true,
+                        minifyJS: true,
+                        minifyCSS: true,
+                        removeEmptyAttributes: true,
+                        removeTagWhitespace: true,
+                        keepClosingSlash: true
+                    }
                 }
             }
         ]
@@ -57,6 +81,11 @@ module.exports = {
         new HtmlWebpackPlugin({
             filename: 'index.html',
             template: './src/base.html'
+        }),
+        new webpack.ProvidePlugin({
+            $: 'jquery',
+            jQuery: 'jquery',
+            'window.jQuery': 'jquery'
         })
     ]
 }
